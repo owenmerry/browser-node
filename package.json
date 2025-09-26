@@ -1,0 +1,31 @@
+{
+  "name": "browser-node-terminal",
+  "version": "1.0.0",
+  "description": "A browser-based terminal using WebContainers with npm support and GitHub integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite"
+  },
+  "dependencies": {
+    "@webcontainer/api": "^1.1.9",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "webcontainer",
+    "terminal",
+    "browser",
+    "node",
+    "npm"
+  ],
+  "author": "Owen Merry",
+  "license": "MIT"
+}

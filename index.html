@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Node Terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 18px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .btn.secondary {
+            background: #2196F3;
+        }
+
+        .btn.secondary:hover {
+            background: #1976D2;
+        }
+
+        .btn.danger {
+            background: #f44336;
+        }
+
+        .btn.danger:hover {
+            background: #d32f2f;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group input {
+            background: #3d3d3d;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .status {
+            background: #333;
+            padding: 8px 20px;
+            border-bottom: 1px solid #404040;
+            font-size: 12px;
+            color: #ccc;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status.loading {
+            color: #4CAF50;
+        }
+
+        .status.error {
+            color: #f44336;
+        }
+
+        .terminal-container {
+            flex: 1;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 10px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-explorer {
+            background: #2d2d2d;
+            width: 250px;
+            border-right: 1px solid #404040;
+            padding: 10px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .file-explorer.visible {
+            display: block;
+        }
+
+        .file-tree {
+            list-style: none;
+        }
+
+        .file-tree li {
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 2px 0;
+        }
+
+        .file-tree li:hover {
+            background: #404040;
+        }
+
+        .file-tree li.folder {
+            font-weight: bold;
+        }
+
+        .file-tree li.file {
+            color: #ccc;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .preview-container {
+            width: 50%;
+            border-left: 1px solid #404040;
+            display: none;
+            flex-direction: column;
+        }
+
+        .preview-container.visible {
+            display: flex;
+        }
+
+        .preview-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .preview-url {
+            background: #3d3d3d;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            flex: 1;
+            font-family: monospace;
+        }
+
+        .preview-frame {
+            flex: 1;
+            border: none;
+            background: white;
+        }
+
+        .terminal-container {
+            flex: 1;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-container.with-preview {
+            width: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .controls {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .input-group input {
+                width: 200px;
+            }
+
+            .main-content {
+                flex-direction: column;
+            }
+
+            .terminal-container.with-preview {
+                width: 100%;
+                height: 50%;
+            }
+
+            .preview-container.visible {
+                width: 100%;
+                height: 50%;
+            }
+
+            .file-explorer.visible {
+                display: none; /* Hide file explorer on mobile when preview is shown */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Browser Node Terminal</h1>
+            <div class="controls">
+                <div class="input-group">
+                    <input type="text" id="githubUrl" placeholder="https://github.com/user/repo" />
+                    <button class="btn secondary" id="loadRepoBtn">Load GitHub Repo</button>
+                </div>
+                <button class="btn" id="newProjectBtn">New Project</button>
+                <button class="btn secondary" id="toggleExplorerBtn">Toggle Files</button>
+                <button class="btn secondary" id="togglePreviewBtn" style="display: none;">Toggle Preview</button>
+                <button class="btn secondary" id="shareBtn">📤 Share</button>
+                <button class="btn secondary" id="testPreviewBtn" style="display: none;">🔍 Test Preview</button>
+                <button class="btn danger" id="clearTerminalBtn">Clear</button>
+                <div class="help-text" style="font-size: 12px; color: #999; margin-top: 5px;">
+                    💡 Some repos may require multiple attempts due to CORS restrictions
+                </div>
+            </div>
+        </div>
+        
+        <div class="status" id="status">
+            Ready to start coding in the browser! 🎉
+        </div>
+
+        <div class="main-content">
+            <div class="file-explorer" id="fileExplorer">
+                <h3 style="color: #4CAF50; margin-bottom: 10px;">Files</h3>
+                <ul class="file-tree" id="fileTree">
+                    <!-- Files will be populated here -->
+                </ul>
+            </div>
+            
+            <div class="terminal-container" id="terminalContainer">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <div>Starting WebContainer...</div>
+                    </div>
+                </div>
+                <div class="terminal-wrapper" id="terminal"></div>
+            </div>
+
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-header">
+                    <span style="color: #4CAF50; font-weight: bold;">🌐 Live Preview</span>
+                    <input type="text" class="preview-url" id="previewUrl" readonly placeholder="No server running..." />
+                    <button class="btn" id="refreshPreviewBtn">↻ Refresh</button>
+                    <button class="btn secondary" id="openExternalBtn">↗ Open</button>
+                    <button class="btn secondary" id="open4321Btn">🚀 4321</button>
+                </div>
+                <iframe class="preview-frame" id="previewFrame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
