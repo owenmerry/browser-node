@@ -82,13 +82,17 @@ export class TerminalManager {
         }
 
         try {
-            // Spawn shell process
-            this.shellProcess = await webcontainerInstance.spawn('jsh', {
+            console.log('Starting shell with WebContainer instance:', webcontainerInstance);
+            
+            // Try to spawn shell process (use 'sh' which is more standard)
+            this.shellProcess = await webcontainerInstance.spawn('sh', {
                 terminal: {
                     cols: this.terminal.cols,
                     rows: this.terminal.rows,
                 },
             });
+
+            console.log('Shell process spawned:', this.shellProcess);
 
             // Set up shell output handling
             this.setupShellOutput();
@@ -97,11 +101,17 @@ export class TerminalManager {
             this.setupShellInput();
 
             console.log('Shell started successfully');
+            
+            // Show welcome message after shell is ready
+            setTimeout(() => {
+                this.showWelcomeMessage();
+            }, 1000);
+            
             return this.shellProcess;
 
         } catch (error) {
             console.error('Error starting shell:', error);
-            this.writeln(TerminalHelper.formatMessage('Failed to start shell', 'error'));
+            this.writeln(TerminalHelper.formatMessage('Failed to start shell: ' + error.message, 'error'));
             throw error;
         }
     }
@@ -246,6 +256,70 @@ export class TerminalManager {
         if (this.terminal) {
             this.terminal.focus();
         }
+    }
+
+    /**
+     * Clear terminal screen (alias for clearTerminal)
+     */
+    clear() {
+        this.clearTerminal();
+    }
+
+    /**
+     * Run a command in the terminal
+     * @param {string} command - Command to run
+     */
+    runCommand(command) {
+        if (this.shellWriter) {
+            this.shellWriter.write(`${command}\r\n`);
+            console.log(`Running command: ${command}`);
+        } else {
+            console.warn('Shell not ready, cannot run command:', command);
+            this.writeln(`Command queued: ${command}`, 'warning');
+        }
+    }
+
+    /**
+     * Show welcome message with system info and helpful commands
+     */
+    showWelcomeMessage() {
+        if (!this.terminal) return;
+
+        // Clear any existing content and show welcome
+        this.terminal.write('\r\n');
+        this.writeln('🚀 Welcome to Browser Node Terminal!', 'success');
+        this.writeln('');
+        this.writeln('📍 Current Environment:', 'info');
+        
+        // Run commands to show system info
+        setTimeout(() => {
+            this.runCommand('node --version');
+        }, 100);
+        
+        setTimeout(() => {
+            this.runCommand('npm --version');
+        }, 200);
+        
+        setTimeout(() => {
+            this.runCommand('pwd');
+        }, 300);
+        
+        setTimeout(() => {
+            this.runCommand('ls');
+        }, 400);
+        
+        setTimeout(() => {
+            this.terminal.write('\r\n');
+            this.writeln('💡 Try these commands:', 'info');
+            this.writeln('  • ls -la           List files with details');
+            this.writeln('  • cat README.md    Read the welcome guide');
+            this.writeln('  • node index.js    Run the welcome script');
+            this.writeln('  • npm install      Install dependencies');
+            this.writeln('  • npm start        Start the project');
+            this.writeln('');
+            this.writeln('Happy coding! 🎉', 'success');
+            this.terminal.write('\r\n');
+        }, 1000);
     }
 
     /**

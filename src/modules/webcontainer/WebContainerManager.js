@@ -135,9 +135,9 @@ export class WebContainerManager {
     }
 
     /**
-     * Write file content
+     * Write file to WebContainer
      * @param {string} filePath - File path
-     * @param {string|Uint8Array} content - File content
+     * @param {string|Uint8Array|object} content - File content
      * @param {object} options - Write options
      * @returns {Promise<void>}
      */
@@ -160,7 +160,16 @@ export class WebContainerManager {
                 await this.mkdir(parentDir);
             }
 
-            await this.webcontainerInstance.fs.writeFile(normalizedPath, content, options);
+            // Convert content to string if it's an object (for JSON files)
+            let fileContent = content;
+            if (typeof content === 'object' && content !== null && !(content instanceof Uint8Array)) {
+                fileContent = JSON.stringify(content, null, 2);
+            }
+
+            // Ensure options are correctly formatted
+            const writeOptions = typeof options === 'string' ? { encoding: options } : options;
+
+            await this.webcontainerInstance.fs.writeFile(normalizedPath, fileContent, writeOptions);
         } catch (error) {
             console.error(`Error writing file ${normalizedPath}:`, error);
             throw error;

@@ -109,7 +109,8 @@ export class FileManager {
      */
     async loadFiles() {
         try {
-            if (!this.webContainerManager?.webcontainer) {
+            const webcontainerInstance = this.webContainerManager?.getInstance();
+            if (!webcontainerInstance) {
                 console.warn('WebContainer not available for file loading');
                 return [];
             }
@@ -131,7 +132,8 @@ export class FileManager {
      */
     async readDirectoryRecursive(path) {
         try {
-            const entries = await this.webContainerManager.webcontainer.fs.readdir(path, { withFileTypes: true });
+            const webcontainerInstance = this.webContainerManager.getInstance();
+            const entries = await webcontainerInstance.fs.readdir(path, { withFileTypes: true });
             const files = [];
 
             for (const entry of entries) {
@@ -148,7 +150,7 @@ export class FileManager {
                 } else {
                     // Get file stats
                     try {
-                        const stats = await this.webContainerManager.webcontainer.fs.stat(fullPath);
+                        const stats = await webcontainerInstance.fs.stat(fullPath);
                         files.push({
                             name: entry.name,
                             path: fullPath,
@@ -256,11 +258,12 @@ export class FileManager {
      * @returns {Promise<string>} File content
      */
     async readFile(path) {
-        if (!this.webContainerManager?.webcontainer) {
+        const webcontainerInstance = this.webContainerManager?.getInstance();
+        if (!webcontainerInstance) {
             throw new Error('WebContainer not available');
         }
 
-        const content = await this.webContainerManager.webcontainer.fs.readFile(path, 'utf-8');
+        const content = await webcontainerInstance.fs.readFile(path, 'utf-8');
         return content;
     }
 
@@ -357,11 +360,12 @@ export class FileManager {
      */
     async createFile(path, content = '') {
         try {
-            if (!this.webContainerManager?.webcontainer) {
+            const webcontainerInstance = this.webContainerManager?.getInstance();
+            if (!webcontainerInstance) {
                 throw new Error('WebContainer not available');
             }
 
-            await this.webContainerManager.webcontainer.fs.writeFile(path, content);
+            await webcontainerInstance.fs.writeFile(path, content);
             await this.refreshFiles();
             
             console.log(`File created: ${path}`);
@@ -377,16 +381,17 @@ export class FileManager {
      */
     async deleteFile(path) {
         try {
-            if (!this.webContainerManager?.webcontainer) {
+            const webcontainerInstance = this.webContainerManager?.getInstance();
+            if (!webcontainerInstance) {
                 throw new Error('WebContainer not available');
             }
 
-            const stats = await this.webContainerManager.webcontainer.fs.stat(path);
+            const stats = await webcontainerInstance.fs.stat(path);
             
             if (stats.isDirectory()) {
-                await this.webContainerManager.webcontainer.fs.rmdir(path, { recursive: true });
+                await webcontainerInstance.fs.rmdir(path, { recursive: true });
             } else {
-                await this.webContainerManager.webcontainer.fs.unlink(path);
+                await webcontainerInstance.fs.unlink(path);
             }
             
             await this.refreshFiles();
@@ -403,11 +408,12 @@ export class FileManager {
      */
     async createDirectory(path) {
         try {
-            if (!this.webContainerManager?.webcontainer) {
+            const webcontainerInstance = this.webContainerManager?.getInstance();
+            if (!webcontainerInstance) {
                 throw new Error('WebContainer not available');
             }
 
-            await this.webContainerManager.webcontainer.fs.mkdir(path, { recursive: true });
+            await webcontainerInstance.fs.mkdir(path, { recursive: true });
             await this.refreshFiles();
             
             console.log(`Directory created: ${path}`);

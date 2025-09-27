@@ -419,4 +419,388 @@ export default defineConfig({
         this.currentProject = null;
         this.projectFiles.clear();
     }
+
+    /**
+     * Create project from template
+     * @param {string} template - Template type (vanilla-js, react, vite, express)
+     * @returns {Promise<object>} Created project information
+     */
+    async createProjectFromTemplate(template) {
+        this.terminal.writeln(`🚀 Creating ${template} project...`, 'info');
+
+        const templates = {
+            'vanilla-js': {
+                name: 'vanilla-js-project',
+                description: 'A vanilla JavaScript project',
+                files: {
+                    'package.json': {
+                        name: 'vanilla-js-project',
+                        version: '1.0.0',
+                        description: 'A vanilla JavaScript project',
+                        main: 'index.js',
+                        scripts: {
+                            start: 'node index.js',
+                            dev: 'npx serve .'
+                        }
+                    },
+                    'index.js': `console.log('Hello from Vanilla JavaScript!');
+
+// Your code here
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+});`,
+                    'index.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanilla JS Project</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vanilla JavaScript Project</h1>
+        <p>Welcome to your new vanilla JavaScript project!</p>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>`,
+                    'README.md': `# Vanilla JavaScript Project
+
+A simple vanilla JavaScript project template.
+
+## Getting Started
+
+1. Open index.html in a browser
+2. Or run \`npm run dev\` to start a local server
+
+## Scripts
+
+- \`npm start\` - Run with Node.js
+- \`npm run dev\` - Serve with local server`
+                }
+            },
+            'react': {
+                name: 'react-project',
+                description: 'A React project',
+                files: {
+                    'package.json': {
+                        name: 'react-project',
+                        version: '1.0.0',
+                        description: 'A React project',
+                        main: 'src/index.js',
+                        scripts: {
+                            start: 'react-scripts start',
+                            build: 'react-scripts build',
+                            dev: 'react-scripts start'
+                        },
+                        dependencies: {
+                            react: '^18.2.0',
+                            'react-dom': '^18.2.0',
+                            'react-scripts': '^5.0.1'
+                        }
+                    },
+                    'public/index.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React App</title>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>`,
+                    'src/index.js': `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);`,
+                    'src/App.js': `import React from 'react';
+
+function App() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>React Project</h1>
+      <p>Welcome to your new React application!</p>
+    </div>
+  );
+}
+
+export default App;`,
+                    'README.md': `# React Project
+
+A React application template.
+
+## Getting Started
+
+1. Run \`npm install\` to install dependencies
+2. Run \`npm start\` to start the development server
+
+## Scripts
+
+- \`npm start\` - Start development server
+- \`npm run build\` - Build for production`
+                }
+            },
+            'vite': {
+                name: 'vite-project',
+                description: 'A Vite project',
+                files: {
+                    'package.json': {
+                        name: 'vite-project',
+                        version: '1.0.0',
+                        description: 'A Vite project',
+                        main: 'main.js',
+                        scripts: {
+                            dev: 'vite',
+                            build: 'vite build',
+                            start: 'vite'
+                        },
+                        devDependencies: {
+                            vite: '^4.0.0'
+                        }
+                    },
+                    'index.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite Project</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>`,
+                    'main.js': `import './style.css'
+
+document.querySelector('#app').innerHTML = \`
+  <div>
+    <h1>Vite Project</h1>
+    <p>Welcome to your new Vite application!</p>
+    <button id="counter" type="button">Count: 0</button>
+  </div>
+\`
+
+let count = 0
+document.querySelector('#counter').addEventListener('click', () => {
+  count++
+  document.querySelector('#counter').textContent = \`Count: \${count}\`
+})`,
+                    'style.css': `body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 40px;
+  background-color: #f5f5f5;
+}
+
+#app {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+button {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #005999;
+}`,
+                    'README.md': `# Vite Project
+
+A fast Vite-based project template.
+
+## Getting Started
+
+1. Run \`npm install\` to install dependencies
+2. Run \`npm run dev\` to start the development server
+
+## Scripts
+
+- \`npm run dev\` - Start development server
+- \`npm run build\` - Build for production`
+                }
+            },
+            'express': {
+                name: 'express-server',
+                description: 'An Express.js server',
+                files: {
+                    'package.json': {
+                        name: 'express-server',
+                        version: '1.0.0',
+                        description: 'An Express.js server',
+                        main: 'server.js',
+                        scripts: {
+                            start: 'node server.js',
+                            dev: 'nodemon server.js'
+                        },
+                        dependencies: {
+                            express: '^4.18.2'
+                        },
+                        devDependencies: {
+                            nodemon: '^3.0.1'
+                        }
+                    },
+                    'server.js': `const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(express.json());
+app.use(express.static('public'));
+
+// Routes
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Welcome to Express Server!',
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.get('/api/hello', (req, res) => {
+    res.json({ message: 'Hello from API!' });
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log(\`🚀 Server running on http://localhost:\${PORT}\`);
+});`,
+                    'public/index.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Express Server</h1>
+        <p>Your Express.js server is running!</p>
+        <button onclick="testAPI()">Test API</button>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/hello');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    '<p><strong>API Response:</strong> ' + JSON.stringify(data, null, 2) + '</p>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<p><strong>Error:</strong> ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>`,
+                    'README.md': `# Express Server
+
+A simple Express.js server template.
+
+## Getting Started
+
+1. Run \`npm install\` to install dependencies
+2. Run \`npm start\` to start the server
+3. Visit http://localhost:3000
+
+## Scripts
+
+- \`npm start\` - Start the server
+- \`npm run dev\` - Start with nodemon (auto-reload)
+
+## Endpoints
+
+- \`GET /\` - Welcome message
+- \`GET /api/hello\` - API endpoint`
+                }
+            }
+        };
+
+        const templateConfig = templates[template];
+        if (!templateConfig) {
+            throw new Error(`Unknown template: ${template}`);
+        }
+
+        try {
+            // Create project files
+            await this.createTemplateFiles(templateConfig.files, templateConfig.name);
+            
+            const project = {
+                name: templateConfig.name,
+                description: templateConfig.description,
+                type: template,
+                files: Object.keys(templateConfig.files),
+                created: new Date().toISOString()
+            };
+
+            this.currentProject = project;
+            this.terminal.writeln(`✅ Created ${template} project successfully!`, 'success');
+            
+            return project;
+
+        } catch (error) {
+            this.terminal.writeln(`❌ Failed to create ${template} project: ${error.message}`, 'error');
+            throw error;
+        }
+    }
+
+    /**
+     * Create template files
+     * @param {object} files - Files to create
+     * @param {string} projectName - Project name
+     */
+    async createTemplateFiles(files, projectName) {
+        for (const [filePath, content] of Object.entries(files)) {
+            // Use the WebContainerManager's writeFile method which handles objects properly
+            await this.webcontainer.writeFile(filePath, content);
+            
+            this.projectFiles.set(filePath, {
+                path: filePath,
+                size: typeof content === 'string' ? content.length : JSON.stringify(content).length,
+                type: this.getFileType(filePath),
+                content: typeof content === 'string' ? content : JSON.stringify(content, null, 2)
+            });
+        }
+    }
+
+    /**
+     * Get file type from extension
+     * @param {string} filePath - File path
+     * @returns {string} File type
+     */
+    getFileType(filePath) {
+        const ext = filePath.split('.').pop();
+        const typeMap = {
+            'js': 'javascript',
+            'html': 'html',
+            'css': 'css',
+            'json': 'json',
+            'md': 'markdown',
+            'txt': 'text'
+        };
+        return typeMap[ext] || 'text';
+    }
 }
